@@ -1,6 +1,5 @@
 // barCode.cpp : 定义控制台应用程序的入口点。
 //
-
 #include "stdafx.h"
 #include <iostream>
 #include <memory>//unique_ptr
@@ -9,7 +8,7 @@
 #include <zbar.h>
 #include <baseapi.h>
 #include <opencv2\opencv.hpp>
-#include "bar.h"
+#include "page.h"
 #include "DFT.h"
 #include <baseapi.h>
 #include <allheaders.h>
@@ -23,9 +22,10 @@ using namespace cv;
 using namespace zbar;
 
 #define amplify_scale 1.9 //1.9  1
+#define MAGICWORD "SHA"
 #define TOINT(x) (static_cast<int>(x*amplify_scale))
-#ifndef isInit
 
+#ifndef isInit
 #define TOODD(x) (TOINT(x)%2==0?(TOINT(x)+1):TOINT(x))
 //drewcompute 
 //#define blur_w amplify_scale*15
@@ -80,29 +80,7 @@ using namespace zbar;
 //    return 0;
 //}
 
-
-int horizonProjection(Mat &src, std::vector<int> &hp) {
-	for (int k = 0; k < hp.size(); k++)
-	{
-		hp[k] = 0;
-		for (int j = 0; j < src.rows; j++)
-			hp[k] += src.ptr<uchar>(j)[k] > 128 ? 1 : 0;
-		//cout << hp[k] << " ";
-	}
-
-	return 0;
-}
-
-int verticalProjection(Mat &src, std::vector<int> &vp) {
-	for (int k = 0; k < vp.size(); k++)
-	{
-		vp[k] = 0;
-		for (int j = 0; j < src.cols; j++)
-			vp[k] += src.ptr<uchar>(k)[j] > 128 ? 1 : 0;
-		//cout << vp[k]<<" ";
-	}
-	return 0;
-}
+//extern tesseract::TessBaseAPI tessr; 
 
 struct decodeInformation
 {
@@ -111,124 +89,7 @@ struct decodeInformation
 	decodeInformation(double x, string y):pos(x),info(y) {}
 };
 
-Page::Page(cv::Mat &img):src_color(img)
-{
-	if (src_color.channels()<3)
-	{
-		cerr << "this is not a color img" << endl;
-	}
-	src_color.copyTo(src_color_clone);
-	cvtColor(src_color, src_gray, CV_BGR2GRAY);
-	normalize(src_gray,src_gray,0,255,NORM_MINMAX);  
-}
 
-Page::~Page()
-{
-	tess->End();
-}
-
-int Page::ocrEngineInit()
-{
-	//cout << blur_w;
-	if (tess->Init("e:\\resources\\tesseract\\tessdata","eng_arial",tesseract::OEM_TESSERACT_CUBE_COMBINED))//OEM_CUBE_ONLY;OEM_TESSERACT_LSTM_COMBINED;OEM_LSTM_ONLY;OEM_TESSERACT_CUBE_COMBINED
-	{
-		cerr << "OCRTess:could not initialize teseract" << endl;
-		return -1;
-	}
-	tess->SetPageSegMode(tesseract::PageSegMode::PSM_SINGLE_WORD);
-	//cout<<"white "<<tess->SetVariable("tessedit_char_whitelist","0123456789");
-	tess->SetVariable("tessedit_char_whitelist","0123456789ABCDEFHIGKLMNOPQRSTUVWXYZ-_");
-	//if (tess.Init("e:\\resources\\tesseract\\tessdata","eng",tesseract::OEM_LSTM_ONLY))
-	//{
-	//	cerr << "OCRTess:could not initialize teseract" << endl;
-	//	return -1;
-	//}
-	//tess.SetPageSegMode(tesseract::PageSegMode::PSM_SINGLE_LINE);
-	//cout<<"white "<<tess.SetVariable("tessedit_char_whitelist",
-	//	"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
-	//cout<<" black "<<tess.SetVariable("tessedit_char_blacklist","!?@#$%&*()<>_-+=/:;'\"");
-	return 0;
-}
-
-tesseract::TessBaseAPI tessr; 
-const char* workArea = "select ROI";
-bool clicked = false;
-cv::Point pt1, pt2;
-void tessrInit() {
-	if (tessr.Init("e:\\resources\\tesseract\\tessdata","eng",tesseract::OEM_TESSERACT_CUBE_COMBINED))
-	{
-		cerr << "OCRTess:could not initialize teseract" << endl;
-		return;
-	}
-	tessr.SetPageSegMode(tesseract::PageSegMode::PSM_SINGLE_CHAR);
-	tessr.SetVariable("tessedit_char_whitelist","0123456789ABCDEFGHIGKLMNOPQRSTUVWXYZ-_");
-	//cout<<"whiteList "<<tess->SetVariable("tessedit_char_whitelist","0123456789ABCDEFGHIGKLMNOPQRSTUVWXYZ-_");
-}
-void Page::on_mouse(int event, int x, int y, int flags, void *param) {
-	Mat *img = (Mat *)param;
-	Mat src = *img;
-	static cv::Mat dst;
-	auto ocr = [&](cv::Rect &roi) {
-		if (!roi.area()) return;
-		cv::Mat roiPic = src(roi).clone();
-		//imgEnhance(roiPic);
-		tessr.SetImage((uchar*)roiPic.data, roiPic.size().width, roiPic.size().height, 
-			roiPic.channels(), roiPic.step1());
-		tessr.Recognize(0);
-		string res = std::unique_ptr<char[]>(tessr.GetUTF8Text()).get() ;
-		res.erase(res.find_last_not_of("\t\r\n")+1);
-		cout << res;
-	};
-	auto func = [&](cv::Scalar &s)->void {
-		cv::Rect roi;
-		roi = cv::Rect(pt1, pt2);
-		if (roi.area())
-		{
-			dst = src.clone();
-			rectangle(dst, roi, s, 1, 8, 0); 
-			imshow(workArea, dst);
-			//if (!clicked) cout << roi << endl;
-		}
-	};
-	switch (event)
-	{
-	case CV_EVENT_LBUTTONDOWN:
-		clicked = true;
-		pt1 = cv::Point(x, y);
-		//pt2 = cv::Point(x, y);
-		break;
-	case CV_EVENT_LBUTTONUP:
-		clicked = false;
-		pt2 = cv::Point(x, y);
-		if (pt2.x < 0) pt2.x = 0;
-		if (pt2.y < 0) pt2.y = 0;
-		if (pt2.x > src.cols-1) pt2.x = src.cols-1;
-		if (pt2.y > src.rows-1) pt2.y = src.rows-1;
-		func(cv::Scalar(255, 0, 128));
-		ocr(cv::Rect(pt1, pt2));
-		break;
-	case CV_EVENT_MOUSEMOVE:
-		if (clicked) {
-			pt2 = cv::Point(x, y);
-			func(cv::Scalar(0, 255, 0));
-		}
-	break;
-	default:
-		break;
-	}
-}
-void Page::roiOcr()
-{
-	tessrInit();
-	cv::namedWindow(workArea, cv::WINDOW_AUTOSIZE);
-	cv::setMouseCallback(workArea, on_mouse, (void*)&src_color_clone);
-	imshow(workArea, src_color_clone);
-	int key = 0;
-	while (key!=27)
-	{
-		key = cv::waitKey(0);
-	}
-}
 
 WorkSheet::WorkSheet(cv::Mat &img) :Page(img) {
 	//CoInitialize(NULL);
@@ -365,10 +226,10 @@ void WorkSheet::inlite_decode()
 		{
 			secondPos = i.pos + 0.2;
 			if (i.info.size() < 5) continue;
-			if (i.info.find("SHA")!=string::npos)
+			if (i.info.find(MAGICWORD)!=string::npos)
 			{
 				string str = i.info;
-				serial = str.substr(str.find("SHA"), str.find(".")-str.find("SHA"));
+				serial = str.substr(str.find(MAGICWORD), str.find(".")-str.find(MAGICWORD));
 			}
 		}
 		else if (i.pos<secondPos)
@@ -379,8 +240,8 @@ void WorkSheet::inlite_decode()
 		else
 		{
 			string str = i.info;
-			if (str.size() < 5||!serial.empty()||str.find("SHA")==string::npos) continue;
-			serial = str.substr(str.find("SHA"), str.find(".")-str.find("SHA"));
+			if (str.size() < 5||!serial.empty()||str.find(MAGICWORD)==string::npos) continue;
+			serial = str.substr(str.find(MAGICWORD), str.find(".")-str.find(MAGICWORD));
 		}
 	}
 }
@@ -602,11 +463,11 @@ void WorkSheet::putOcrText()
 		}
 		if (infoList.size())
 		{
-			if (serial.empty()&&infoList[0].info.find("SHA")!=string::npos)
+			if (serial.empty()&&infoList[0].info.find(MAGICWORD)!=string::npos)
 				serial = infoList[0].info;
 			if (approach.empty())
 			{
-				if (infoList.size()==1&&infoList[0].info.find("SHA")==string::npos
+				if (infoList.size()==1&&infoList[0].info.find(MAGICWORD)==string::npos
 					&&infoList[0].info.size()>minStringSize)
 					approach = infoList[0].info;
 				if (infoList.size()>1&&infoList[1].pos>0.1&&infoList[1].pos<0.2
@@ -995,7 +856,7 @@ void WorkSheet::process() {
 	//cout << "putOcr time" << tt<<endl;
 	//t = cv::getTickCount();
 
-	//roiOcr();
+	//roiOcr(src_color_clone);
 	//ocrByChar();
 	drawRects();
 	//while (src_color_clone.rows>1000||src_color_clone.cols>1900)

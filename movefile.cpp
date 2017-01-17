@@ -57,7 +57,7 @@ int moveFiles(string &inF, string &outF, int fileType, bool IsRecursive) {
 	switch (fileType)
 	{
 	case WORKSHEET:
-		tessrInit();
+		//tessrInit();
 		if (!getImgList(inF, imgList, IsRecursive)) {
 			cout << "total " << imgList.size() << " file" << endl;
 			int key = 0;

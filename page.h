@@ -1,4 +1,5 @@
 #pragma once
+#include "stdafx.h"
 #include <iostream>
 #include <string>
 #include <opencv2\opencv.hpp>
@@ -6,7 +7,14 @@
 #include <baseapi.h>
 #include "ClearImageBarcode.h"
 
-void tessrInit();
+//static void on_mouse(int event, int x, int y, int flags, void *param);
+extern tesseract::TessBaseAPI tessr; 
+void roiOcr(cv::Mat src_color);
+int horizonProjection(cv::Mat &src, std::vector<int> &hp);
+int verticalProjection(cv::Mat &src, std::vector<int> &vp);
+void systemInit();
+void systemEnd();
+
 class Page
 {
 public:
@@ -19,10 +27,10 @@ public:
 	virtual void drewCompute() = 0;
 	virtual void putOcrText() = 0;
 	int ocrEngineInit();
-	void roiOcr();
+	//void roiOcr();
 
 protected:
-	static void on_mouse(int event, int x, int y, int flags, void *param);
+	//static void on_mouse(int event, int x, int y, int flags, void *param);
 	const cv::Mat src_color;
 	cv::Mat src_color_clone;
 	cv::Mat src_gray;
