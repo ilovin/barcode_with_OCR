@@ -3,27 +3,29 @@
 #include <memory>//unique_ptr
 #include "page.h"
 
+#define TESSDATADIR "e:\\resources\\tesseract\\tessdata"
+//#define TESSDATADIR "D:\\Document\\code\\tesseract\\tessdata"
 using namespace std;
 using namespace cv;
 
-int horizonProjection(cv::Mat &src, std::vector<int> &hp) {
+int horizonProjection(cv::Mat &gray, std::vector<int> &hp) {
 	for (int k = 0; k < hp.size(); k++)
 	{
 		hp[k] = 0;
-		for (int j = 0; j < src.rows; j++)
-			hp[k] += src.ptr<uchar>(j)[k] > 128 ? 1 : 0;
+		for (int j = 0; j < gray.rows; j++)
+			hp[k] += gray.ptr<uchar>(j)[k] > 128 ? 1 : 0;
 		//cout << hp[k] << " ";
 	}
 
 	return 0;
 }
 
-int verticalProjection(cv::Mat &src, std::vector<int> &vp) {
+int verticalProjection(cv::Mat &gray, std::vector<int> &vp) {
 	for (int k = 0; k < vp.size(); k++)
 	{
 		vp[k] = 0;
-		for (int j = 0; j < src.cols; j++)
-			vp[k] += src.ptr<uchar>(k)[j] > 128 ? 1 : 0;
+		for (int j = 0; j < gray.cols; j++)
+			vp[k] += gray.ptr<uchar>(k)[j] > 128 ? 1 : 0;
 		//cout << vp[k]<<" ";
 	}
 	return 0;
@@ -88,7 +90,8 @@ static void on_mouse(int event, int x, int y, int flags, void *param) {
 		break;
 	}
 }
-void roiOcr(cv::Mat src_color)
+
+void roiOcr(cv::Mat &src_color)
 {
 	cv::namedWindow(workArea, cv::WINDOW_AUTOSIZE);
 	cv::setMouseCallback(workArea, on_mouse, (void*)&src_color);
@@ -101,7 +104,7 @@ void roiOcr(cv::Mat src_color)
 }
 
 void roiOcrEngineInit() {
-	if (tessr.Init("e:\\resources\\tesseract\\tessdata","eng",tesseract::OEM_TESSERACT_CUBE_COMBINED))
+	if (tessr.Init(TESSDATADIR,"eng",tesseract::OEM_TESSERACT_CUBE_COMBINED))
 	{
 		cerr << "OCRTess:could not initialize teseract" << endl;
 		return;
@@ -139,7 +142,7 @@ Page::~Page()
 int Page::ocrEngineInit()
 {
 	//cout << blur_w;
-	if (tess->Init("e:\\resources\\tesseract\\tessdata","eng_arial",tesseract::OEM_TESSERACT_CUBE_COMBINED))//OEM_CUBE_ONLY;OEM_TESSERACT_LSTM_COMBINED;OEM_LSTM_ONLY;OEM_TESSERACT_CUBE_COMBINED
+	if (tess->Init(TESSDATADIR,"eng_arial",tesseract::OEM_TESSERACT_CUBE_COMBINED))//OEM_CUBE_ONLY;OEM_TESSERACT_LSTM_COMBINED;OEM_LSTM_ONLY;OEM_TESSERACT_CUBE_COMBINED
 	{
 		cerr << "OCRTess:could not initialize teseract" << endl;
 		return -1;

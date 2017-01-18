@@ -1,17 +1,21 @@
 #pragma once
 #include "stdafx.h"
 #include <iostream>
+#include <set>
+#include <memory>
 #include <string>
 #include <opencv2\opencv.hpp>
 #include <zbar.h>
 #include <baseapi.h>
 #include "ClearImageBarcode.h"
 
+#define MAGICWORD "SHA"
 //static void on_mouse(int event, int x, int y, int flags, void *param);
 extern tesseract::TessBaseAPI tessr; 
-void roiOcr(cv::Mat src_color);
-int horizonProjection(cv::Mat &src, std::vector<int> &hp);
-int verticalProjection(cv::Mat &src, std::vector<int> &vp);
+void roiOcr(cv::Mat &src_color);
+int horizonProjection(cv::Mat &gray, std::vector<int> &hp);
+int verticalProjection(cv::Mat &gray, std::vector<int> &vp);
+cv::Mat rotateImg(cv::Mat &src, double &angle);
 void systemInit();
 void systemEnd();
 
@@ -68,4 +72,31 @@ private:
 	std::string approach;
 	ICiServerPtr Ci;
 	ICiBarcodeProPtr BcIter;
+};
+
+//application form
+class Form :public Page
+{
+public:
+	void drewCompute() {};
+	void putOcrText() {};
+
+	void process();
+	void findBarcodeRect();
+	void drawRects();
+	void drawRotated();
+	void inlite_decode();
+	std::set<std::string> getSerials();
+
+	Form(cv::Mat &img);
+	Form();
+	~Form();
+
+private:
+	std::vector<cv::RotatedRect> rRects;//barcode
+	std::vector<cv::Rect> rects;//barcode
+	std::set<std::string> serials;
+	ICiServerPtr Ci;
+	ICiBarcodeProPtr BcIter;
+	
 };

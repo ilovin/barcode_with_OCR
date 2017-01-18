@@ -7,6 +7,7 @@
 
 #define WORKSHEET 0
 #define REPORT 1
+#define FORM 2
 
 using namespace std;
 using namespace cv;

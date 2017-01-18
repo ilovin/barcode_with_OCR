@@ -26,3 +26,6 @@ findOcrRect:
 - findOcr 0.001
 - deocde 0.1/each ~ 0.4
 - OCR and putText 0.01
+
+#### GTD
+sort rect 和rRect可能顺序不一样

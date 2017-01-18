@@ -51,8 +51,73 @@ int cpFiles(string &inF, string &imgName, string &outF, string &serial,string &a
 
 }
 
+string cpFiles(string &inF, string &imgName, string &outF, 
+	std::set<string>&serial ,string &lastName) {
+	string name;
+	if (!serial.size()) 
+	{
+		if (lastName.empty())
+			name = "!no_serial";
+		else name = lastName;
+	}
+	else
+	{
+		for (auto &s : serial) {
+			cout << "cp: " << s << endl;
+			name = name + "_"+s;
+		}
+		name.erase(0,1);
+	}
+	cout << "name: " << name << endl;
+	string outFolder = outF + "/"+name;
+	string countFile = outFolder + "/" + "countFile.txt";
+	string suf = imgName.substr(imgName.find_last_of("."));
+
+	//string inFileName = inF + "/" + imgName;
+	string inFileName = imgName;
+	if (!fs::exists(outFolder))
+	{
+		fs::create_directory(outFolder);
+		//create countfile.txt
+		std::ofstream ofs(countFile, ios::trunc | ios::out);
+
+		string outFileName = outFolder + "/" + "1." + suf;
+		CopyFile(inFileName.c_str(), outFileName.c_str(),1);
+		DWORD Error = GetLastError();
+		if (unsigned int(Error)) cout <<"Error copy file"<< Error << endl;
+		ofs << "1";
+		ofs.close();
+
+	}
+	else
+	{
+		std::ifstream ifs(countFile);
+		string cnt_str;
+		int cnt;
+		ifs >> cnt;
+		ifs.close();
+		std::ofstream ofs(countFile, ios::trunc | ios::out);
+		stringstream ss;
+		ss << ++cnt;
+		string outFileName = outFolder + "/" + ss.str()+"." + suf;
+		CopyFile(inFileName.c_str(), outFileName.c_str(),0);
+		ofs << ss.str();
+		ofs.close();
+	}
+	return name;
+}
 int moveFiles(string &inF, string &outF, int fileType, bool IsRecursive) {
-	if (!fs::exists(outF)) fs::create_directory(outF);
+	if (!fs::exists(outF)) {
+		try
+		{
+			fs::create_directory(outF);
+		}
+		catch (const std::exception&e)
+		{
+			cerr << "cannot create the directory " <<e.what()<< endl;
+			return -1;
+		}
+	}
 	std::vector<std::string> imgList;
 	switch (fileType)
 	{
@@ -78,12 +143,38 @@ int moveFiles(string &inF, string &outF, int fileType, bool IsRecursive) {
 
 				//ws.roiOcr();
 
-				//imshow("color_res", ws.getProcessedImg());
-				//key = waitKey(0);
-				//if (key == 27) break;
-				ws.~WorkSheet();
+				imshow("color_res", ws.getProcessedImg());
+				key = waitKey(0);
+				if (key == 27) break;
 			}
 		}
+		break;
+	case FORM:
+		if (!getImgList(inF, imgList, IsRecursive)) {
+			cout << "total " << imgList.size() << " file" << endl;
+			int key = 0;
+			for (auto &img:imgList)
+			{
+				//string fileName = "img/ws/ws5_03.jpg";
+				cout << img << endl;
+				Mat src_color = imread(img, 1);
+				if (src_color.empty())
+				{
+					cerr << "cannot open the IMG: " << img << endl;
+				}
+				Form fm(src_color);
+				fm.process();
+				string lastSerial;
+				lastSerial = cpFiles(inF,img, outF, fm.getSerials(), lastSerial);
+
+				//ws.roiOcr();
+				//namedWindow("res", cv::WINDOW_NORMAL);
+				//imshow("res", fm.getProcessedImg());
+				//key = waitKey(0);
+				//if (key == 27) break;
+			}
+		}
+
 		break;
 	case REPORT:
 		break;

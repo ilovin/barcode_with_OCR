@@ -22,14 +22,13 @@ using namespace cv;
 using namespace zbar;
 
 #define amplify_scale 1.9 //1.9  1
-#define MAGICWORD "SHA"
 #define TOINT(x) (static_cast<int>(x*amplify_scale))
 
 #ifndef isInit
 #define TOODD(x) (TOINT(x)%2==0?(TOINT(x)+1):TOINT(x))
 //drewcompute 
 //#define blur_w amplify_scale*15
-#define th_bar_drew 160//210 160
+#define th_bar_drew 165//210 160
 #define th_bar 50//70 50
 #define blur_w TOODD(15)
 #define blur_h TOODD(9)
@@ -89,12 +88,14 @@ struct decodeInformation
 	decodeInformation(double x, string y):pos(x),info(y) {}
 };
 
-
+WorkSheet::WorkSheet()
+{
+	new(this)WorkSheet(cv::Mat());
+}
 
 WorkSheet::WorkSheet(cv::Mat &img) :Page(img) {
-	//CoInitialize(NULL);
-	//  Initailzie COM  could not init
 	CoInitialize(NULL);
+	//  Initailzie COM  could not init
 	HRESULT hr = Ci.CreateInstance(__uuidof(CiServer));
 	if (FAILED(hr)) _com_issue_error (hr);
 	long nMasterId = 0;
@@ -107,17 +108,14 @@ WorkSheet::WorkSheet(cv::Mat &img) :Page(img) {
 	BcIter->Type = (FBarcodeType) (cibfPostnet);
 	BcIter->Encodings = (EBarcodeEncoding)129;//106
 	BcIter->Algorithm = cibBestRecognition;
-}
-
-WorkSheet::WorkSheet()
-{
-	BcIter = Ci->CreateBarcodePro();
-	BcIter->AutoDetect1D = ciTrue;
-	BcIter->ValidateOptChecksum = ciFalse;
-	BcIter->Directions = (FBarcodeDirections)(cibHorz | cibVert | cibDiag);
-	BcIter->Type = (FBarcodeType) (cibfPostnet);
-	BcIter->Encodings = (EBarcodeEncoding)129;//106
-	BcIter->Algorithm = cibBestRecognition;
+	//CoInitialize(NULL);
+	//BcIter = Ci->CreateBarcodePro();
+	//BcIter->AutoDetect1D = ciTrue;
+	//BcIter->ValidateOptChecksum = ciFalse;
+	//BcIter->Directions = (FBarcodeDirections)(cibHorz | cibVert | cibDiag);
+	//BcIter->Type = (FBarcodeType) (cibfPostnet);
+	//BcIter->Encodings = (EBarcodeEncoding)129;//106
+	//BcIter->Algorithm = cibBestRecognition;
 }
 
 WorkSheet::~WorkSheet()
@@ -225,7 +223,7 @@ void WorkSheet::inlite_decode()
 		if (i.pos<0.1)
 		{
 			secondPos = i.pos + 0.2;
-			if (i.info.size() < 5) continue;
+			if (i.info.size() < minStringSize) continue;
 			if (i.info.find(MAGICWORD)!=string::npos)
 			{
 				string str = i.info;
@@ -234,13 +232,13 @@ void WorkSheet::inlite_decode()
 		}
 		else if (i.pos<secondPos)
 		{
-			if (i.info.size() < 5) continue;
+			if (i.info.size() < minStringSize) continue;
 			approach = i.info;
 		}
 		else
 		{
 			string str = i.info;
-			if (str.size() < 5||!serial.empty()||str.find(MAGICWORD)==string::npos) continue;
+			if (str.size() < minStringSize||!serial.empty()||str.find(MAGICWORD)==string::npos) continue;
 			serial = str.substr(str.find(MAGICWORD), str.find(".")-str.find(MAGICWORD));
 		}
 	}
@@ -535,7 +533,7 @@ void WorkSheet::drewCompute() {
 	double angle = 0;
 	if (rects.size()==1)
 	{
-		if (rRects[0].angle >= -45) angle = -rRects[0].angle;
+		if (rRects[0].angle >= -45) angle = rRects[0].angle;
 		else angle = 90 + rRects[0].angle;
 		std::cout << "angle: " << angle << endl;
 	}
@@ -578,19 +576,35 @@ void WorkSheet::drewCompute() {
 	//cout << "the angle " << angle << endl;
 	if (angle!=0)
 	{
-		cv::Point2f center(src_gray.cols / 2, src_gray.rows / 2);
-		Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
-		cv::Rect bbox = cv::RotatedRect(center, src_gray.size(), angle).boundingRect();
-		//cout << bbox << endl;
-		rot.at<double>(0, 2) += bbox.width / 2.0 - center.x;
-		rot.at<double>(1, 2) += bbox.height / 2.0 - center.y;
-		Mat dst;
-		warpAffine(src_gray, src_gray, rot, bbox.size());
-		warpAffine(src_color_clone, src_color_clone, rot, bbox.size());
+		rotateImg(src_gray, angle);
+		rotateImg(src_color_clone, angle);
+		//cv::Point2f center(src_gray.cols / 2, src_gray.rows / 2);
+		//Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
+		//cv::Rect bbox = cv::RotatedRect(center, src_gray.size(), angle).boundingRect();
+		////cout << bbox << endl;
+		//rot.at<double>(0, 2) += bbox.width / 2.0 - center.x;
+		//rot.at<double>(1, 2) += bbox.height / 2.0 - center.y;
+		//cv::warpAffine(src_gray, src_gray, rot, bbox.size());
+		//cv::warpAffine(src_color_clone, src_color_clone, rot, bbox.size());
+
 		//warpAffine(src_gray, dst, rot, bbox.size());
 		//imshow("warpAffine", src_gray);
 	}
 
+}
+
+//inputImg,rotate_degree
+cv::Mat rotateImg(cv::Mat &src, double &angle) {
+	if (src.empty()) return src;
+	cv::Point2f center(src.cols / 2, src.rows / 2);
+	Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
+	cv::Rect bbox = cv::RotatedRect(center, src.size(), angle).boundingRect();
+	//cout << bbox << endl;
+	rot.at<double>(0, 2) += bbox.width / 2.0 - center.x;
+	rot.at<double>(1, 2) += bbox.height / 2.0 - center.y;
+	Mat dst;
+	cv::warpAffine(src, src, rot, bbox.size());
+	return src;
 }
 
 void WorkSheet::ocrByChar()
