@@ -159,7 +159,7 @@ void Form::findBarcodeRect() {
 		cv::Rect r = tmp_rects[i];
 		Mat roi = src_gray(r).clone();
 		double angle = tmp_rRects[i].angle;
-		cout << "angle: " << angle << endl;
+		//cout << "angle: " << angle << endl;
 		//if (angle >= -45) angle = angle;
 		if(angle<-45) angle = 90 + angle;
 		rotateImg(roi, angle);
