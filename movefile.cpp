@@ -63,12 +63,11 @@ string cpFiles(string &inF, string &imgName, string &outF,
 	else
 	{
 		for (auto &s : serial) {
-			cout << "cp: " << s << endl;
+			cout << "serial detected: " << s << endl;
 			name = name + "_"+s;
 		}
 		name.erase(0,1);
 	}
-	cout << "name: " << name << endl;
 	string outFolder = outF + "/"+name;
 	string countFile = outFolder + "/" + "countFile.txt";
 	string suf = imgName.substr(imgName.find_last_of("."));
@@ -114,7 +113,7 @@ int moveFiles(string &inF, string &outF, int fileType, bool IsRecursive) {
 		}
 		catch (const std::exception&e)
 		{
-			cerr << "cannot create the directory " <<e.what()<< endl;
+			cerr << e.what()<< endl;
 			return -1;
 		}
 	}
@@ -143,6 +142,7 @@ int moveFiles(string &inF, string &outF, int fileType, bool IsRecursive) {
 
 				//ws.roiOcr();
 
+				namedWindow("color_res", cv::WINDOW_AUTOSIZE);
 				imshow("color_res", ws.getProcessedImg());
 				key = waitKey(0);
 				if (key == 27) break;

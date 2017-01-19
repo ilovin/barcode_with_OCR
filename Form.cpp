@@ -2,6 +2,7 @@
 #include <iostream>
 #include <opencv2\opencv.hpp>
 #include "page.h"
+#include "func.h"
 
 using namespace std;
 using namespace cv;

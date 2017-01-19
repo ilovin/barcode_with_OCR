@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <tchar.h>
 
-
+#define WORKSHEET 0
+#define REPORT 1
+#define FORM 2
 
 // TODO:  在此处引用程序需要的其他头文件

@@ -9,15 +9,14 @@
 #include <baseapi.h>
 #include "ClearImageBarcode.h"
 
-#define MAGICWORD "SHA"
 //static void on_mouse(int event, int x, int y, int flags, void *param);
-extern tesseract::TessBaseAPI tessr; 
-void roiOcr(cv::Mat &src_color);
-int horizonProjection(cv::Mat &gray, std::vector<int> &hp);
-int verticalProjection(cv::Mat &gray, std::vector<int> &vp);
-cv::Mat rotateImg(cv::Mat &src, double &angle);
-void systemInit();
-void systemEnd();
+//extern tesseract::TessBaseAPI tessr; 
+//void roiOcr(cv::Mat &src_color);
+//int horizonProjection(cv::Mat &gray, std::vector<int> &hp);
+//int verticalProjection(cv::Mat &gray, std::vector<int> &vp);
+//cv::Mat rotateImg(cv::Mat &src, double &angle);
+//void systemInit();
+//void systemEnd();
 
 class Page
 {

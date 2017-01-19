@@ -13,6 +13,7 @@
 #include <baseapi.h>
 #include <allheaders.h>
 #include <set>
+#include "func.h"
 
 #define STR(s) #s
 
@@ -593,19 +594,6 @@ void WorkSheet::drewCompute() {
 
 }
 
-//inputImg,rotate_degree
-cv::Mat rotateImg(cv::Mat &src, double &angle) {
-	if (src.empty()) return src;
-	cv::Point2f center(src.cols / 2, src.rows / 2);
-	Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
-	cv::Rect bbox = cv::RotatedRect(center, src.size(), angle).boundingRect();
-	//cout << bbox << endl;
-	rot.at<double>(0, 2) += bbox.width / 2.0 - center.x;
-	rot.at<double>(1, 2) += bbox.height / 2.0 - center.y;
-	Mat dst;
-	cv::warpAffine(src, src, rot, bbox.size());
-	return src;
-}
 
 void WorkSheet::ocrByChar()
 {

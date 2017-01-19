@@ -3,26 +3,28 @@
 #include "movefile.h"
 #include <experimental\filesystem>
 #include "page.h"
+#include "func.h"
 
 //#define STR(s) #s
 
 using namespace std;
 
-int main()
+int main( int argc, char** argv )
 {
 	//string filePath = "./img/scan2";
 	//string img = "./img/ws/ws5_03.jpg";
-	systemInit();
-	string filePath = "E:/Photos/img/scan_form";
+	string filePath;
 	//string filePath = "E:/Photos/img/scan_ws";
-	string outputPath = "D:/tmp/output";
+	string outputPath;
+	int type;
+	systemInit(filePath,outputPath,type);
 
-	std::experimental::filesystem::remove_all(outputPath.c_str());
+	//std::experimental::filesystem::remove_all(outputPath.c_str());
 
-	moveFiles(filePath, outputPath, FORM, false);
+	moveFiles(filePath, outputPath, type, false);
 	//moveFiles(filePath, outputPath, WORKSHEET, false);
 
 	systemEnd();
-	cin.get();
+	//cin.get();
     return 0;
 }
