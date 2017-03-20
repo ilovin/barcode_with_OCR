@@ -142,10 +142,10 @@ int moveFiles(string &inF, string &outF, int fileType, bool IsRecursive) {
 
 				//ws.roiOcr();
 
-				namedWindow("color_res", cv::WINDOW_AUTOSIZE);
-				imshow("color_res", ws.getProcessedImg());
-				key = waitKey(0);
-				if (key == 27) break;
+				//namedWindow("color_res", cv::WINDOW_AUTOSIZE);
+				//imshow("color_res", ws.getProcessedImg());
+				//key = waitKey(0);
+				//if (key == 27) break;
 			}
 		}
 		break;
@@ -174,6 +174,83 @@ int moveFiles(string &inF, string &outF, int fileType, bool IsRecursive) {
 				//if (key == 27) break;
 			}
 		}
+
+		break;
+	case REPORT:
+		break;
+	default:
+		break;
+	}
+	return 0;
+}
+
+int moveFiles(Mat &src_color, int fileType,vector<string>&res) {
+	//std::vector<std::string> imgList;
+	switch (fileType)
+	{
+	case WORKSHEET:
+		//tessrInit();
+		//if (!getImgList(inF, imgList, IsRecursive)) {
+			//cout << "total " << imgList.size() << " file" << endl;
+			//int key = 0;
+			//for (auto &img:imgList)
+			//{
+				//string fileName = "img/ws/ws5_03.jpg";
+				//cout << img << endl;
+				//Mat src_color = imread(img, 1);
+		if (src_color.empty())
+		{
+			cerr << "cannot open the IMG " << endl;
+		}
+		{
+			WorkSheet ws(src_color);
+			ws.process();
+			//cpFiles(inF,img, outF, ws.getSerial(), ws.getApproach(), lastSerial);
+			res.clear();
+			res.push_back(ws.getSerial());
+			res.push_back(ws.getApproach());
+		}
+
+				//ws.roiOcr();
+
+				//namedWindow("color_res", cv::WINDOW_AUTOSIZE);
+				//imshow("color_res", ws.getProcessedImg());
+				//key = waitKey(0);
+				//if (key == 27) break;
+			//}
+		//}
+		break;
+	case FORM:
+		//if (!getImgList(inF, imgList, IsRecursive)) {
+			//cout << "total " << imgList.size() << " file" << endl;
+			//int key = 0;
+			//for (auto &img:imgList)
+			//{
+				//string fileName = "img/ws/ws5_03.jpg";
+				//cout << img << endl;
+				//Mat src_color = imread(img, 1);
+				if (src_color.empty())
+				{
+					cerr << "cannot open the IMG: " << endl;
+				}
+				{
+					Form fm(src_color);
+					fm.process();
+					res.clear();
+					for (auto &s : fm.getSerials()) {
+						res.push_back(s);
+					}
+				}
+				//string lastSerial;
+				//lastSerial = cpFiles(inF,img, outF, fm.getSerials(), lastSerial);
+
+				//ws.roiOcr();
+				//namedWindow("res", cv::WINDOW_NORMAL);
+				//imshow("res", fm.getProcessedImg());
+				//key = waitKey(0);
+				//if (key == 27) break;
+			//}
+		//}
 
 		break;
 	case REPORT:

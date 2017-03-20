@@ -21,10 +21,19 @@ int main( int argc, char** argv )
 
 	//std::experimental::filesystem::remove_all(outputPath.c_str());
 
-	moveFiles(filePath, outputPath, type, false);
+	Mat src = imread("e:/Photos/img/scan_ws/CCF01152017 - Copy (2).jpg");
+	vector<string>res;
+	moveFiles(src, 0, res);
+	cout << "The result:" << endl;
+	for (auto &s:res)
+	{
+		cout << s << endl;
+	}
+	//moveFiles(filePath, outputPath, type, false);
 	//moveFiles(filePath, outputPath, WORKSHEET, false);
 
 	systemEnd();
-	//cin.get();
+
+	cin.get();
     return 0;
 }

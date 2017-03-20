@@ -9,3 +9,4 @@ using namespace std;
 using namespace cv;
 
 int moveFiles(string &inF, string &outF, int fileType, bool IsRecursive);
+int moveFiles(Mat &src_color, int fileType, vector<string>&res);
